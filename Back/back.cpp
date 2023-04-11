@@ -382,7 +382,7 @@ int main()
 
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port = htons(8080);
+    serverAddress.sin_port = htons(9000);
 
     int bindResult = bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
     if (bindResult < 0)
