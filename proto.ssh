@@ -1,0 +1,1 @@
+protoc project.proto --cpp_out=./
