@@ -19,7 +19,7 @@ struct cliente
 
 cliente clienteOb[100] = {};
 
-void *clientHandler(void *arg)
+void *clienteHandler(void *arg)
 {
     pthread_t thisThread = pthread_self();
     int slot = -1;
@@ -390,7 +390,7 @@ int main()
         }
 
         pthread_t thread;
-        pthread_create(&thread, NULL, &clientHandler, (void *)&socket);
+        pthread_create(&thread, NULL, &clienteHandler, (void *)&socket);
     }
 
     close(server);
