@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/sockaddr_in.h>
+#include <sys/socket.h>
 #include <cstring>
 #include <sys/types.h>
 #include <sys/wait.h>
