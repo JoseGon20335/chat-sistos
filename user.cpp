@@ -32,7 +32,7 @@ int main()
     {
         buffer[2048] = {0};
 
-        printf("Email: ");
+        printf("Ingrese Email: \n");
         scanf("%s", buffer);
 
         if (strlen(buffer) != 0)
@@ -87,8 +87,9 @@ int main()
 
     string username = (string)buffer;
 
-    printf("IP: %s\n", ip.c_str());
-    printf("Email: %s\n", buffer);
+    printf("IP: %s", ip.c_str());
+    printf("Email: %s", buffer);
+    printf("\n");
 
     chat::UserRequest register_set;
 
@@ -110,14 +111,14 @@ int main()
 
     chat::ServerResponse server_responce;
     server_responce.ParseFromString((string)buffer);
-
+    
     if (server_responce.code() == 200)
     {
-        printf("200 OK: Todo bien\n");
+        printf("200: Todo bien\n");
     }
     else
     {
-        printf("400 BAD: %s\n", server_responce.servermessage().c_str());
+        printf("400: %s\n", server_responce.servermessage().c_str());
         return 1;
     }
 
@@ -134,7 +135,7 @@ int main()
         {
             sleep(1);
             out++;
-
+            printf("heartbeat");
             if (out == 20)
             {
                 chat::UserRequest heart_beat;
