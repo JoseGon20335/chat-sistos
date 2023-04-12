@@ -368,14 +368,32 @@ int main()
     int port;
 
     server = socket(AF_INET, SOCK_STREAM, 0);
+    if(server < 0){
+        printf("Error server\n");
+        return 1;
+    }
 
     port = setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &port, sizeof(port));
+    if(port < 0){
+        printf("Error port\n");
+        return 1;
+    }
 
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
     serverAddress.sin_port = htons(8080);
 
     int bindResult = bind(server, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+
+    if(bindResult < 0){
+        printf("Error bind\n");
+        return 1;
+    }
+
+    if(listen(server, 5) < 0){
+        printf("listen error\n");
+        return 1;
+    }
 
     while (true)
     {
@@ -386,17 +404,15 @@ int main()
 
         if (socket < 0)
         {
-            printf("Error");
+            printf("Error socket");
             return 1;
         }
-
+        printf("Coneccion exitosa esperando usuarios");
         pthread_t thread;
         pthread_create(&thread, NULL, &clienteHandler, (void *)&socket);
     }
 
     close(server);
     shutdown(server, SHUT_RDWR);
-
-    printf("Server is shutting down\n");
     return 0;
 }
