@@ -22,7 +22,7 @@ int main()
     server = socket(AF_INET, SOCK_STREAM, 0);
 
     server_info.sin_family = AF_INET;
-    server_info.sin_port = htons(9000);
+    server_info.sin_port = htons(8080);
 
     int connectResult = connect(server, (struct sockaddr *)&server_info, sizeof(server_info));
 
