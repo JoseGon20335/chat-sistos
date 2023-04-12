@@ -24,6 +24,7 @@ void *clienteHandler(void *arg)
     pthread_t thisThread = pthread_self();
     int slot = -1;
     int clientSocket = *(int *)arg;
+    printf("clientSocket %d\n", clientSocket);
 
     char buffer[2048] = {0};
     int readResult;
@@ -111,9 +112,9 @@ void *clienteHandler(void *arg)
 
                 for (int i = 0; i < 100; i++)
                 {
-                    if (clienteOb[i].ip == newRequest.mutable_newuser()->ip())
+                    if (clienteOb[i].ip == user_request.mutable_newuser()->ip())
                     {
-                        flagExist true;
+                        flagExist = true;
                     }
                 }
 
@@ -129,7 +130,7 @@ void *clienteHandler(void *arg)
                     {
                         if (clienteOb[i].username == "")
                         {
-                            slot i;
+                            slot = i;
                         }
                     }
 
@@ -231,7 +232,7 @@ void *clienteHandler(void *arg)
             else if (user_request.option() == 4)
             {
                 string mensaje = user_request.mutable_message()->message();
-                string envia = user_request.mutable_message()->envia();
+                string envia = user_request.mutable_message()->sender();
                 string recibe;
                 bool online = false;
                 int recipientSlot = -1;
@@ -265,7 +266,7 @@ void *clienteHandler(void *arg)
                 }
                 else
                 {
-                    recibe = user_request.mutable_message()->recibe();
+                    recibe = user_request.mutable_message()->recipient();
                     for (int i = 0; i < 100; i++)
                     {
                         if (clienteOb[i].username == recibe && clienteOb[i].status != 0)

@@ -44,9 +44,9 @@ int main()
     string ip;
     const char *dnsServer = "8.8.8.8";
     int dnsPort = 53;
-    struct sockett serv;
+    
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
-
+    struct socket serv{};
     if (sock < 0)
     {
         printf("Error con IP\n");
@@ -65,18 +65,18 @@ int main()
         return 1;
     }
 
-    struct sockett name;
+    struct socket name;
     socklen_t namelen = sizeof(name);
     err = getsockname(sock, (struct sockaddr *)&name, &namelen);
 
-    char buffer[80];
+    buffer[80];
     const char *p = inet_ntop(AF_INET, &name.sin_addr, buffer, 80);
 
     if (p != NULL)
     {
         close(sock);
         string res = (string)buffer;
-        return ip;
+
     }
     else
     {
@@ -184,11 +184,11 @@ int main()
                         {
                             if (server_responce.mutable_message()->message_type() == true)
                             {
-                                printf("PUBLICO: %s: %s\n", server_responce.mutable_message()->sender().c_str(), server_responce.mutable_message()->mensaje().c_str());
+                                printf("PUBLICO: %s: %s\n", server_responce.mutable_message()->sender().c_str(), server_responce.mutable_message()->message().c_str());
                             }
                             else
                             {
-                                printf("PRIVADA %s: %s\n", server_responce.mutable_message()->sender().c_str(), server_responce.mutable_message()->mensaje().c_str());
+                                printf("PRIVADA %s: %s\n", server_responce.mutable_message()->sender().c_str(), server_responce.mutable_message()->message().c_str());
                             }
                         }
                         else
