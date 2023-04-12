@@ -16,17 +16,15 @@ int main()
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    struct sockett;
-    struct server_info;
-    int serverSocket;
-    int serverPort;
+    struct sockaddr_in server_info;
+    int server;
 
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    server = socket(AF_INET, SOCK_STREAM, 0);
 
     server_info.sin_family = AF_INET;
     server_info.sin_port = htons(9000);
 
-    int connectResult = connect(serverSocket, (struct sockaddr *)&server_info, sizeof(server_info));
+    int connectResult = connect(server, (struct sockaddr *)&server_info, sizeof(server_info));
 
     char buffer[2048] = {0};
 
@@ -100,9 +98,9 @@ int main()
     string serialized;
     register_set.SerializeToString(&serialized);
 
-    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+    send(server, serialized.c_str(), serialized.length(), 0);
 
-    int readResult = read(serverSocket, buffer, 2048);
+    int readResult = read(server, buffer, 2048);
     if (readResult < 0)
     {
         printf("Error reading from server\n");
@@ -144,7 +142,7 @@ int main()
                 string serialized;
                 heart_beat.SerializeToString(&serialized);
 
-                send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                send(server, serialized.c_str(), serialized.length(), 0);
                 out = 0;
             }
         }
@@ -159,7 +157,7 @@ int main()
         {
             while (*flag)
             {
-                int readResult = read(serverSocket, buffer, 2048);
+                int readResult = read(server, buffer, 2048);
 
                 if (readResult < 0)
                 {
@@ -241,7 +239,7 @@ int main()
                     string serialized;
                     user_request.SerializeToString(&serialized);
 
-                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                    send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else if (temp == 2)
                 {
@@ -260,7 +258,7 @@ int main()
                     string serialized;
                     user_request.SerializeToString(&serialized);
 
-                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                    send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else if (temp == 3)
                 {
@@ -270,7 +268,7 @@ int main()
                     string serialized;
                     user_request.SerializeToString(&serialized);
 
-                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                    send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else if (temp == 4)
                 {
@@ -287,8 +285,8 @@ int main()
         wait(NULL);
     }
 
-    close(serverSocket);
-    shutdown(serverSocket, SHUT_RDWR);
+    close(server);
+    shutdown(server, SHUT_RDWR);
     google::protobuf::ShutdownProtobufLibrary();
 
     printf("Client is shutting down\n");

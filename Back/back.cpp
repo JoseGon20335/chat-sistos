@@ -9,7 +9,7 @@
 
 using std::string;
 
-struct Client
+struct cliente
 {
     string username;
     string ip;
@@ -17,333 +17,333 @@ struct Client
     int status;
 };
 
-Client clients[100] = {};
-
-int getFirstEmptySlot()
-{
-    for (int i = 0; i < 100; i++)
-    {
-        if (clients[i].username == "")
-        {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-bool checkIfUserExists(string ip)
-{
-    for (int i = 0; i < 100; i++)
-    {
-        if (clients[i].ip == ip)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
+cliente clienteOb[100] = {};
 
 void *clientHandler(void *arg)
 {
     pthread_t thisThread = pthread_self();
-    int clientSlot = -1;
+    int slot = -1;
     int clientSocket = *(int *)arg;
 
-    printf("Thread %lu is handling client\n", thisThread);
-
-    char buffer[1024] = {0};
+    char buffer[2048] = {0};
     int readResult;
 
-    while (true)
+    loop = true;
+    temp = true;
+    while (loop)
     {
-        bool noHeartbeat = false;
+        bool heartbeat = false;
         int pid = fork();
 
         if (pid == 0)
         {
-            int timeInactive = 0;
+            int timeout = 0;
 
-            while (true)
+            while (temp)
             {
                 sleep(10);
-                timeInactive += 10;
-                printf("Thread %lu: No heartbeat received - %d seconds\n", thisThread, timeInactive);
+                timeout += 10;
+                printf("Timeout: %d\n", timeout);
 
-                if (timeInactive >= 60)
+                if (timeout >= 60)
                 {
                     close(clientSocket);
-                    noHeartbeat = true;
-                    break;
+                    heartbeat = true;
+                    temp = false;
                 }
             }
+            temp = true;
         }
         else if (pid > 0)
         {
-            readResult = read(clientSocket, buffer, 1024);
+            readResult = read(clientSocket, buffer, 2048);
             kill(pid, SIGKILL);
             wait(NULL);
         }
 
-        if (noHeartbeat)
+        if (heartbeat)
         {
-            printf("Thread %lu: Client disconnected due to inactivity\n", thisThread);
-
-            if (clientSlot != -1)
+            printf("Inactividad timeout\n");
+            if (slot != -1)
             {
-                clients[clientSlot].username = "";
-                clients[clientSlot].ip = "";
-                clients[clientSlot].socket = 0;
-                clients[clientSlot].status = 0;
+                clienteOb[slot].username = "";
+                clienteOb[slot].ip = "";
+                clienteOb[slot].socket = 0;
+                clienteOb[slot].status = 0;
             }
-
-            break;
+            loop = false;
         }
 
         if (readResult < 0)
         {
-            printf("Thread %lu: Error reading from socket\n", thisThread);
-            break;
+            printf("ERROR");
+            loop = false;
         }
         else if (readResult == 0)
         {
-            printf("Thread %lu: Client disconnected\n", thisThread);
-
-            if (clientSlot != -1)
+            printf("Cliente desconectado\n");
+            if (slot != -1)
             {
-                clients[clientSlot].username = "";
-                clients[clientSlot].ip = "";
-                clients[clientSlot].socket = 0;
-                clients[clientSlot].status = 0;
+                clienteOb[slot].username = "";
+                clienteOb[slot].ip = "";
+                clienteOb[slot].socket = 0;
+                clienteOb[slot].status = 0;
             }
-
-            break;
+            loop = false;
         }
         else
         {
-            chat::UserRequest newRequest;
-            newRequest.ParseFromString((string)buffer);
+            chat::UserRequest user_request;
+            user_request.ParseFromString((string)buffer);
 
-            if (newRequest.option() == 1)
+            if (user_request.option() == 1)
             {
                 // User registration
-                printf("Thread %lu: User %s wants to register with IP %s\n", thisThread, newRequest.mutable_newuser()->username().c_str(), newRequest.mutable_newuser()->ip().c_str());
+                printf("User: %s\n se intentara registrara con ip: %s\n", user_request.mutable_newuser()->username().c_str();
+                printf("Se registrara con ip: %s\n", user_request.mutable_newuser()->ip().c_str());
 
-                chat::ServerResponse newResponse;
-                newResponse.set_option(1);
-                newResponse.set_code(400);
-                newResponse.set_servermessage("Error registering user");
+                chat::ServerResponse server_response;
+                server_response.set_option(1);
+                server_response.set_code(400);
+                server_response.set_servermessage("Error registering user");
 
-                if (checkIfUserExists(newRequest.mutable_newuser()->ip()))
+                flagExist = false;
+
+                for (int i = 0; i < 100; i++)
                 {
-                    printf("Thread %lu: User with IP %s already exists\n", thisThread, newRequest.mutable_newuser()->ip().c_str());
-                    newResponse.set_servermessage("User with this IP already exists");
+                    if (clienteOb[i].ip == ip)
+                    {
+                        flagExist true;
+                    }
+                }
+
+                if (flagExist)
+                {
+                    printf("Esta IP %s ya tiene una cuenta unida\n", user_request.mutable_newuser()->ip().c_str());
+                    server_response.set_servermessage("IP ya registrada");
                 }
                 else
                 {
-                    clientSlot = getFirstEmptySlot();
-
-                    printf("Thread %lu: Client slot: %d\n", thisThread, clientSlot);
-
-                    if (clientSlot == -1)
+                    slot = -1;
+                    for (int i = 0; i < 100; i++)
                     {
-                        printf("Thread %lu: No empty slots\n", thisThread);
-                        break;
+                        if (clienteOb[i].username == "")
+                        {
+                            slot i;
+                        }
                     }
 
-                    clients[clientSlot].username = newRequest.mutable_newuser()->username();
-                    clients[clientSlot].ip = newRequest.mutable_newuser()->ip();
-                    clients[clientSlot].socket = clientSocket;
-                    clients[clientSlot].status = 1;
+                    if (slot == -1)
+                    {
+                        printf("No empty slots\n");
+                        loop = false;
+                    }
 
-                    newResponse.set_code(200);
-                    newResponse.set_servermessage("User registered");
+                    clienteOb[slot].username = user_request.mutable_newuser()->username();
+                    clienteOb[slot].ip = user_request.mutable_newuser()->ip();
+                    clienteOb[slot].socket = clientSocket;
+                    clienteOb[slot].status = 1;
 
-                    printf("Thread %lu: User %s registered with IP %s\n", thisThread, clients[clientSlot].username.c_str(), clients[clientSlot].ip.c_str());
+                    server_response.set_code(200);
+                    server_response.set_servermessage("Registro exitoso");
+
+                    printf("Usario %s\n", clienteOb[slot].username.c_str());
+                    printf("con IP %s\n", clienteOb[slot].ip.c_str());
+                    printf("se registro correctamente\n");
                 }
 
                 string responseString;
-                newResponse.SerializeToString(&responseString);
+                server_response.SerializeToString(&responseString);
 
                 send(clientSocket, responseString.c_str(), responseString.length(), 0);
             }
-            else if (newRequest.option() == 2)
+            else if (user_request.option() == 2)
             {
-                // User information request
-
-                if (newRequest.mutable_inforequest()->type_request() == true)
+                if (user_request.mutable_inforequest()->type_request() == true)
                 {
                     // All users
-                    printf("Thread %lu: User %s wants to get all users\n", thisThread, clients[clientSlot].username.c_str());
+                    printf("User: %s pide la lista de usuarios\n", clienteOb[slot].username.c_str());
 
-                    chat::ServerResponse newResponse;
-                    newResponse.set_option(2);
-                    newResponse.set_code(200);
-                    newResponse.set_servermessage("All users");
+                    chat::ServerResponse server_response;
+                    server_response.set_option(2);
+                    server_response.set_code(200);
+                    server_response.set_servermessage("Lista usuarios");
 
                     for (int i = 0; i < 100; i++)
                     {
-                        if (clients[i].username != "")
+                        if (clienteOb[i].username != "")
                         {
-                            chat::UserInfo *newUser = newResponse.mutable_connectedusers()->add_connectedusers();
-                            newUser->set_username(clients[i].username);
-                            newUser->set_ip(clients[i].ip);
-                            newUser->set_status(clients[i].status);
+                            chat::UserInfo *user_info = server_response.mutable_connectedusers()->add_connectedusers();
+                            user_info->set_username(clienteOb[i].username);
+                            user_info->set_ip(clienteOb[i].ip);
+                            user_info->set_status(clienteOb[i].status);
                         }
                     }
 
                     string responseString;
-                    newResponse.SerializeToString(&responseString);
+                    server_response.SerializeToString(&responseString);
 
                     send(clientSocket, responseString.c_str(), responseString.length(), 0);
                 }
                 else
                 {
                     // Single user
-                    printf("Thread %lu: User %s wants to get user %s\n", thisThread, clients[clientSlot].username.c_str(), newRequest.mutable_inforequest()->user().c_str());
+                    printf("User %s\n", clienteOb[slot].username.c_str());
+                    printf("Trata de acceder a %s\n", user_request.mutable_inforequest()->user().c_str());
 
-                    chat::ServerResponse newResponse;
-                    newResponse.set_option(2);
-                    newResponse.set_code(400);
-                    newResponse.set_servermessage("User not found");
+                    chat::ServerResponse server_response;
+                    server_response.set_option(2);
+                    server_response.set_code(400);
+                    server_response.set_servermessage("Usuario no ubicado");
 
                     for (int i = 0; i < 100; i++)
                     {
-                        if (clients[i].username == newRequest.mutable_inforequest()->user())
+                        if (clienteOb[i].username == user_request.mutable_inforequest()->user())
                         {
-                            chat::UserInfo *newUser = newResponse.mutable_connectedusers()->add_connectedusers();
-                            newUser->set_username(clients[i].username);
-                            newUser->set_ip(clients[i].ip);
-                            newUser->set_status(clients[i].status);
+                            chat::UserInfo *user_info = server_response.mutable_connectedusers()->add_connectedusers();
+                            user_info->set_username(clienteOb[i].username);
+                            user_info->set_ip(clienteOb[i].ip);
+                            user_info->set_status(clienteOb[i].status);
 
-                            newResponse.set_code(200);
-                            newResponse.set_servermessage("User found");
-                            break;
+                            server_response.set_code(200);
+                            server_response.set_servermessage("Usuario no ubicado");
+                            loop = false;
                         }
                     }
 
                     string responseString;
-                    newResponse.SerializeToString(&responseString);
+                    server_response.SerializeToString(&responseString);
 
                     send(clientSocket, responseString.c_str(), responseString.length(), 0);
                 }
             }
-            else if (newRequest.option() == 3)
+            else if (user_request.option() == 3)
             {
-                // Status change
                 for (int i = 0; i < 100; i++)
                 {
-                    if (clients[i].username == newRequest.mutable_status()->username())
+                    if (clienteOb[i].username == user_request.mutable_status()->username())
                     {
-                        clients[i].status = newRequest.mutable_status()->newstatus();
-                        break;
+                        clienteOb[i].status = user_request.mutable_status()->newstatus();
+                        loop = false;
                     }
                 }
             }
-            else if (newRequest.option() == 4)
+            else if (user_request.option() == 4)
             {
-                // New message
-                string newMsg = newRequest.mutable_message()->message();
-                string sender = newRequest.mutable_message()->sender();
-                string recipient;
+                string mensaje = user_request.mutable_message()->message();
+                string envia = user_request.mutable_message()->envia();
+                string recibe;
+                bool online = false;
+                int recipientSlot = -1;
 
-                if (newRequest.mutable_message()->message_type() == true)
+                if (user_request.mutable_message()->message_type() == true)
                 {
-                    recipient = "all";
+                    recibe = "public";
+                    chat::ServerResponse server_response;
+                    server_response.set_option(4);
+                    server_response.set_code(200);
+                    server_response.set_servermessage("Mensaje enviado");
+
+                    string responseString;
+                    server_response.SerializeToString(&responseString);
+
+                    send(clientSocket, responseString.c_str(), responseString.length(), 0);
+
+                    chat::ServerResponse mensaje_enviado;
+                    mensaje_enviado.set_option(4);
+                    mensaje_enviado.set_code(200);
+                    mensaje_enviado.set_servermessage("Nuevo mensaje");
+                    mensaje_enviado.mutable_message()->set_message(mensaje);
+                    mensaje_enviado.mutable_message()->set_message_type(true);
+                    for (int i = 0; i < 100; i++)
+                    {
+                        if (clienteOb[i].username != envia && clienteOb[i].status != 0)
+                        {
+                            send(clienteOb[i].socket, responseString.c_str(), responseString.length(), 0);
+                        }
+                    }
                 }
                 else
                 {
-                    recipient = newRequest.mutable_message()->recipient();
-                }
-
-                bool online = false;
-                int recipientSlot = -1;
-                for (int i = 0; i < 100; i++)
-                {
-                    if (clients[i].username == recipient && clients[i].status != 0)
+                    recibe = user_request.mutable_message()->recibe();
+                    for (int i = 0; i < 100; i++)
                     {
-                        online = true;
-                        recipientSlot = i;
-                        break;
+                        if (clienteOb[i].username == recibe && clienteOb[i].status != 0)
+                        {
+                            online = true;
+                            recipientSlot = i;
+                            loop = false;
+                        }
                     }
-                }
 
-                if (online || recipient == "all")
-                {
-                    printf("Thread %lu: New message from %s to %s: %s\n", thisThread, sender.c_str(), recipient.c_str(), newMsg.c_str());
-
-                    chat::ServerResponse newResponse;
-                    newResponse.set_option(4);
-                    newResponse.set_code(200);
-                    newResponse.set_servermessage("Message sent");
-
-                    string responseString;
-                    newResponse.SerializeToString(&responseString);
-
-                    send(clientSocket, responseString.c_str(), responseString.length(), 0);
-
-                    chat::ServerResponse sentMessage;
-                    sentMessage.set_option(4);
-                    sentMessage.set_code(200);
-                    sentMessage.set_servermessage("New message");
-                    sentMessage.mutable_message()->set_message(newMsg);
-
-                    if (recipient == "all")
+                    if (online)
                     {
-                        sentMessage.mutable_message()->set_message_type(true);
+                        chat::ServerResponse server_response;
+                        server_response.set_option(4);
+                        server_response.set_code(200);
+                        server_response.set_servermessage("Mensaje enviado");
+
+                        string responseString;
+                        server_response.SerializeToString(&responseString);
+
+                        send(clientSocket, responseString.c_str(), responseString.length(), 0);
+
+                        chat::ServerResponse mensaje_enviado;
+                        mensaje_enviado.set_option(4);
+                        mensaje_enviado.set_code(200);
+                        mensaje_enviado.set_servermessage("Nuevo mensaje");
+                        mensaje_enviado.mutable_message()->set_message(mensaje);
+                        mensaje_enviado.mutable_message()->set_message_type(false);
+                        mensaje_enviado.mutable_message()->set_sender(envia);
+                        mensaje_enviado.mutable_message()->set_recipient(recibe);
 
                         for (int i = 0; i < 100; i++)
                         {
-                            if (clients[i].username != sender && clients[i].status != 0)
+                            if (clienteOb[i].username == envia)
                             {
-                                send(clients[i].socket, responseString.c_str(), responseString.length(), 0);
+                                send(clienteOb[i].socket, responseString.c_str(), responseString.length(), 0);
+                                loop = false;
                             }
                         }
                     }
                     else
                     {
-                        sentMessage.mutable_message()->set_message_type(false);
-                        sentMessage.mutable_message()->set_sender(sender);
-                        sentMessage.mutable_message()->set_recipient(recipient);
+                        printf("Thread %lu: User %s is offline\n", thisThread, recibe.c_str());
 
-                        for (int i = 0; i < 100; i++)
-                        {
-                            if (clients[i].username == sender)
-                            {
-                                send(clients[i].socket, responseString.c_str(), responseString.length(), 0);
-                                break;
-                            }
-                        }
+                        chat::ServerResponse server_response;
+                        server_response.set_option(4);
+                        server_response.set_code(400);
+                        server_response.set_servermessage("User is offline");
+
+                        string responseString;
+                        server_response.SerializeToString(&responseString);
+
+                        send(clientSocket, responseString.c_str(), responseString.length(), 0);
                     }
                 }
-                else
+
+                for (int i = 0; i < 100; i++)
                 {
-                    printf("Thread %lu: User %s is offline\n", thisThread, recipient.c_str());
-
-                    chat::ServerResponse newResponse;
-                    newResponse.set_option(4);
-                    newResponse.set_code(400);
-                    newResponse.set_servermessage("User is offline");
-
-                    string responseString;
-                    newResponse.SerializeToString(&responseString);
-
-                    send(clientSocket, responseString.c_str(), responseString.length(), 0);
+                    if (clienteOb[i].username == recibe && clienteOb[i].status != 0)
+                    {
+                        online = true;
+                        recipientSlot = i;
+                        loop = false;
+                    }
                 }
             }
-            else if (newRequest.option() == 5)
+            else if (user_request.option() == 5)
             {
                 // Heartbeat
-                printf("Thread %lu: Heartbeat received\n", thisThread);
+                printf("Heartbeat\n");
 
-                chat::ServerResponse newResponse;
-                newResponse.set_option(5);
-                newResponse.set_code(200);
-                newResponse.set_servermessage("Heartbeat received");
+                chat::ServerResponse server_response;
+                server_response.set_option(5);
+                server_response.set_code(200);
+                server_response.set_servermessage("Heartbeat response");
 
                 string responseString;
-                newResponse.SerializeToString(&responseString);
+                server_response.SerializeToString(&responseString);
 
                 send(clientSocket, responseString.c_str(), responseString.length(), 0);
             }
@@ -363,59 +363,38 @@ int main()
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     struct sockaddr_in serverAddress;
-    int serverSocket;
-    int serverPort;
+    int server;
+    int port;
 
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0)
-    {
-        printf("Error creating socket\n");
-        return 1;
-    }
+    server = socket(AF_INET, SOCK_STREAM, 0);
 
-    serverPort = setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &serverPort, sizeof(serverPort));
-    if (serverPort < 0)
-    {
-        printf("Error setting socket options\n");
-        return 1;
-    }
+    port = setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &port, sizeof(port));
 
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
     serverAddress.sin_port = htons(9000);
 
-    int bindResult = bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
-    if (bindResult < 0)
-    {
-        printf("Error binding socket\n");
-        return 1;
-    }
-
-    if (listen(serverSocket, 5) < 0)
-    {
-        printf("Error listening to socket\n");
-        return 1;
-    }
+    int bindResult = bind(server, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
     while (true)
     {
-        printf("Waiting for client to connect...\n");
+        printf("Conectando con el servidor\n");
 
         int size = sizeof(serverAddress);
-        int newSocket = accept(serverSocket, (struct sockaddr *)&serverAddress, (socklen_t *)&size);
+        int socket = accept(server, (struct sockaddr *)&serverAddress, (socklen_t *)&size);
 
-        if (newSocket < 0)
+        if (socket < 0)
         {
-            printf("Error accepting connection\n");
+            printf("Error");
             return 1;
         }
 
         pthread_t thread;
-        pthread_create(&thread, NULL, &clientHandler, (void *)&newSocket);
+        pthread_create(&thread, NULL, &clientHandler, (void *)&socket);
     }
 
-    close(serverSocket);
-    shutdown(serverSocket, SHUT_RDWR);
+    close(server);
+    shutdown(server, SHUT_RDWR);
 
     printf("Server is shutting down\n");
     return 0;
