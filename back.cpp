@@ -28,8 +28,8 @@ void *clienteHandler(void *arg)
     char buffer[2048] = {0};
     int readResult;
 
-    loop = true;
-    temp = true;
+    bool loop = true;
+    bool temp = true;
     while (loop)
     {
         bool heartbeat = false;
@@ -99,7 +99,7 @@ void *clienteHandler(void *arg)
             if (user_request.option() == 1)
             {
                 // User registration
-                printf("User: %s\n se intentara registrara con ip: %s\n", user_request.mutable_newuser()->username().c_str();
+                printf("User: %s\n se intentara registrara con ip: %s\n", user_request.mutable_newuser()->username().c_str());
                 printf("Se registrara con ip: %s\n", user_request.mutable_newuser()->ip().c_str());
 
                 chat::ServerResponse server_response;
@@ -107,11 +107,11 @@ void *clienteHandler(void *arg)
                 server_response.set_code(400);
                 server_response.set_servermessage("Error registering user");
 
-                flagExist = false;
+                bool flagExist = false;
 
                 for (int i = 0; i < 100; i++)
                 {
-                    if (clienteOb[i].ip == ip)
+                    if (clienteOb[i].ip == newRequest.mutable_newuser()->ip())
                     {
                         flagExist true;
                     }
@@ -124,7 +124,7 @@ void *clienteHandler(void *arg)
                 }
                 else
                 {
-                    slot = -1;
+                    int slot = -1;
                     for (int i = 0; i < 100; i++)
                     {
                         if (clienteOb[i].username == "")
