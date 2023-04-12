@@ -100,8 +100,8 @@ void *clienteHandler(void *arg)
             if (user_request.option() == 1)
             {
                 // User registration
-                printf("User: %s\n se intentara registrara con ip: %s\n", user_request.mutable_newuser()->username().c_str());
-                printf("Se registrara con ip: %s\n", user_request.mutable_newuser()->ip().c_str());
+                printf("User: %s\n se intentara registrar\n", user_request.mutable_newuser()->username().c_str());
+                printf("Con la ip: %s\n", user_request.mutable_newuser()->ip().c_str());
 
                 chat::ServerResponse server_response;
                 server_response.set_option(1);

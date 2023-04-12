@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
+#include <sys/sockaddr_in.h>
 #include <cstring>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -44,10 +44,12 @@ int main()
     string ip;
     const char *dnsServer = "8.8.8.8";
     int dnsPort = 53;
-    
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    struct socket serv{};
-    if (sock < 0)
+
+    int socketInt = socket(AF_INET, SOCK_DGRAM, 0);
+    struct sockaddr_in serv
+    {
+    };
+    if (socketInt < 0)
     {
         printf("Error con IP\n");
         return 1;
@@ -58,25 +60,24 @@ int main()
     serv.sin_addr.s_addr = inet_addr(dnsServer);
     serv.sin_port = htons(dnsPort);
 
-    int err = connect(sock, (const struct sockaddr *)&serv, sizeof(serv));
+    int err = connect(socketInt, (const struct sockaddr *)&serv, sizeof(serv));
     if (err < 0)
     {
         printf("Error con IP\n");
         return 1;
     }
 
-    struct socket name;
+    struct sockaddr_in name;
     socklen_t namelen = sizeof(name);
-    err = getsockname(sock, (struct sockaddr *)&name, &namelen);
+    err = getsockname(socketInt, (struct sockaddr *)&name, &namelen);
 
     buffer[80];
     const char *p = inet_ntop(AF_INET, &name.sin_addr, buffer, 80);
 
     if (p != NULL)
     {
-        close(sock);
+        close(socketInt);
         string res = (string)buffer;
-
     }
     else
     {
