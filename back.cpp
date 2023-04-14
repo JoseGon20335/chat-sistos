@@ -27,7 +27,7 @@ void *handler(void *arg)
     int slot = -1;
     int socketInt = *(int *)arg;
 
-    printf("Thread %lu: Client connected\n", thisThread);
+    printf("Un cliete conectado\n");
 
     char buffer[2048] = {0};
     int readPid;
