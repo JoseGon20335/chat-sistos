@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     server = socket(AF_INET, SOCK_STREAM, 0);
     if (server < 0)
     {
-        printf("Error creating socket\n");
+        printf("Socket fail\n");
         return 1;
     }
 
@@ -75,9 +75,7 @@ int main(int argc, char **argv)
     int dnsPort = 53;
 
     int socketInt = socket(AF_INET, SOCK_DGRAM, 0);
-    struct sockaddr_in serv
-    {
-    };
+    struct sockaddr_in serv;
     if (socketInt < 0)
     {
         close(socketInt);
