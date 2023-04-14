@@ -43,8 +43,7 @@ void *handler(void *arg)
     while (flagLive)
     {
         memset(buffer, 0, 2048);
-
-        *stillActive = true;
+        *stillActive = false;
         *reading = true;
         int pid = fork();
 
@@ -54,21 +53,14 @@ void *handler(void *arg)
 
             while (*reading)
             {
-                sleep(10);
-                timeInactive += 10;
+                sleep(1);
+                timeInactive += 1;
 
-                if (timeInactive >= 180)
+                if (timeInactive >= 120)
                 {
                     close(socketInt);
-                    *stillActive = false;
-                    flagLive = false;
-                    if (slot != -1)
-                    {
-                        allClients[slot].username = "";
-                        allClients[slot].ip = "";
-                        allClients[slot].socketInt = 0;
-                        allClients[slot].status = 0;
-                    }
+                    *stillActive = true;
+                    break;
                 }
             }
 
@@ -77,20 +69,24 @@ void *handler(void *arg)
         else if (pid > 0)
         {
             readPid = -1;
-            int flags = fcntl(socketInt, F_GETFL, 0);
-            fcntl(socketInt, F_SETFL, flags | O_NONBLOCK);
 
             while (readPid == -1 && *stillActive)
             {
                 readPid = read(socketInt, buffer, 2048);
-                if (readPid == -1 && errno == EAGAIN)
-                {
-                    usleep(100000);
-                }
             }
 
             *reading = false;
             wait(NULL);
+        }
+
+        if (*stillActive)
+        {
+            if (slot != -1)
+            {
+                allClients[slot].status = 2;
+            }
+
+            break;
         }
 
         if (readPid < 0)

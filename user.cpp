@@ -116,13 +116,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // int connectResult = connect(err, (struct sockaddr *)&err, sizeof(err));
-    // if (connectResult < 0)
-    // {
-    //     printf("Error connecting to server\n");
-    //     return 1;
-    // }
-
     string username = (string)buffer;
 
     printf("IP: %s\n", ip.c_str());
@@ -138,11 +131,12 @@ int main(int argc, char **argv)
     register_set.SerializeToString(&serialized);
 
     send(server, serialized.c_str(), serialized.length(), 0);
-
+    printf("Sending register request\n");
     int readResult = read(server, buffer, 2048);
+    printf("Reading server\n");
     if (readResult < 0)
     {
-        printf("Error reading from server\n");
+        printf("Error\n");
         return 1;
     }
 
