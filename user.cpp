@@ -14,8 +14,13 @@ using std::string;
 
 int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        printf("PORT: %s\n", argv[0]);
+        return 1;
+    }
     string serverIP = (string)argv[1];
-    int serverPort = atoi(argv[2]);
+    int InputPort = atoi(argv[2]);
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     struct sockaddr_in server_info;
@@ -29,19 +34,23 @@ int main(int argc, char **argv)
     }
 
     server_info.sin_family = AF_INET;
-    server_info.sin_port = htons(8080);
-
+    server_info.sin_port = htons(InputPort);
+    int connectResult;
+    printf("Trying to convert adress\n");
     if (inet_pton(AF_INET, serverIP.c_str(), &server_info.sin_addr) <= 0)
     {
-        printf("Error converting address\n");
+        printf("Error\n");
         return 1;
     }
-
-    int connectResult = connect(server, (struct sockaddr *)&server_info, sizeof(server_info));
-    if (connectResult < 0)
+    else
     {
-        printf("Error connecting to server\n");
-        return 1;
+        connectResult = connect(server, (struct sockaddr *)&server_info, sizeof(server_info));
+        printf("Connectingto the server\n");
+        if (connectResult < 0)
+        {
+            printf("Error\n");
+            return 1;
+        }
     }
 
     char buffer[2048] = {0};
