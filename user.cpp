@@ -71,8 +71,8 @@ int main()
     socklen_t namelen = sizeof(name);
     err = getsockname(socketInt, (struct sockaddr *)&name, &namelen);
 
-    buffer[80];
-    const char *p = inet_ntop(AF_INET, &name.sin_addr, buffer, 80);
+    char buffer[80];
+    const char *p = inet_ntop(AF_INET, &name.sin_addr, ip, 80);
 
     if (p != NULL)
     {
@@ -85,7 +85,7 @@ int main()
         return 1;
     }
 
-    string username = (string)buffer;
+    string username(buffer, strlen(buffer));
 
     printf("IP: %s", ip.c_str());
     printf("Email: %s", buffer);
@@ -111,7 +111,7 @@ int main()
 
     chat::ServerResponse server_responce;
     server_responce.ParseFromString((string)buffer);
-    
+
     if (server_responce.code() == 200)
     {
         printf("200: Todo bien\n");
@@ -135,7 +135,7 @@ int main()
         {
             sleep(1);
             out++;
-            printf("heartbeat");
+            printf("heartbeat\n");
             if (out == 20)
             {
                 chat::UserRequest heart_beat;
