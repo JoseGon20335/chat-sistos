@@ -14,9 +14,10 @@ using std::string;
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        printf("PORT: %s\n", argv[0]);
+        printf("IP: %s\n", argv[1]);
+        printf("PORT: %s\n", argv[2]);
         return 1;
     }
     string serverIP = (string)argv[1];
