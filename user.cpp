@@ -108,12 +108,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int connectResult = connect(err, (struct sockaddr *)&err, sizeof(err));
-    if (connectResult < 0)
-    {
-        printf("Error connecting to server\n");
-        return 1;
-    }
+    // int connectResult = connect(err, (struct sockaddr *)&err, sizeof(err));
+    // if (connectResult < 0)
+    // {
+    //     printf("Error connecting to server\n");
+    //     return 1;
+    // }
 
     string username = (string)buffer;
 
