@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <cstring>
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include "project.pb.h"
@@ -62,7 +64,7 @@ void *handler(void *arg)
                     {
                         allClients[slot].username = "";
                         allClients[slot].ip = "";
-                        allClients[slot].socket = 0;
+                        allClients[slot].socketInt = 0;
                         allClients[slot].status = 0;
                     }
                 }
@@ -102,7 +104,7 @@ void *handler(void *arg)
             {
                 allClients[slot].username = "";
                 allClients[slot].ip = "";
-                allClients[slot].socket = 0;
+                allClients[slot].socketInt = 0;
                 allClients[slot].status = 0;
             }
             flagLive = false;
@@ -128,12 +130,13 @@ void *handler(void *arg)
 
                 for (int i = 0; i < 10; i++)
                 {
-                    if (allClients[i].ip.c_str() == ip.c_str())
+                    if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->ip().c_str())
                     {
-                        printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str()) : newResponse.set_servermessage("IP already register");
+                        printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str());
+                        newResponse.set_servermessage("IP already register");
                         canRegister = false;
                     }
-                    if (allClients[i].ip.c_str() == ip.c_str())
+                    if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->username().c_str())
                     {
                         printf("We alredy have a user whit the username: %s\n", newRequest.mutable_newuser()->username().c_str());
                         newResponse.set_servermessage("IP already register");
@@ -164,7 +167,7 @@ void *handler(void *arg)
                         printf("IP: %s\n", allClients[slot].ip.c_str());
                         allClients[slot].username = newRequest.mutable_newuser()->username();
                         allClients[slot].ip = newRequest.mutable_newuser()->ip();
-                        allClients[slot].socket = socketInt;
+                        allClients[slot].socketInt = socketInt;
                         allClients[slot].status = 1;
                     }
                     newResponse.set_code(200);
@@ -284,7 +287,7 @@ void *handler(void *arg)
                 printf("New Request from user: NEW MESSAGE ALL\n");
                 printf("User:%s\n", newRequest.mutable_newuser()->username().c_str());
                 printf("IP:%s\n", newRequest.mutable_newuser()->ip().c_str());
-                printf("Message:%s\n", newRequest.mutable_message()->message(););
+                printf("Message:%s\n", newRequest.mutable_message()->message());
 
                 chat::ServerResponse newResponse;
                 newResponse.set_option(4);
@@ -308,7 +311,7 @@ void *handler(void *arg)
                 {
                     if (allClients[i].username != newRequest.mutable_message()->sender() && allClients[i].status != 0)
                     {
-                        send(allClients[i].socket, sentMsg.c_str(), sentMsg.size(), 0);
+                        send(allClients[i].socketInt, sentMsg.c_str(), sentMsg.size(), 0);
                         newRequest.mutable_message()->sender();
                     }
                 }
@@ -318,8 +321,8 @@ void *handler(void *arg)
                 printf("New Request from user: NEW MESSAGE PRIVATE\n");
                 printf("User:%s\n", newRequest.mutable_newuser()->username().c_str());
                 printf("IP:%s\n", newRequest.mutable_newuser()->ip().c_str());
-                printf("Message:%s\n", newRequest.mutable_message()->message(););
-                printf("Para:%s\n", newRequest.mutable_message()->recipient(););
+                printf("Message:%s\n", newRequest.mutable_message()->message());
+                printf("Para:%s\n", newRequest.mutable_message()->recipient());
 
                 chat::ServerResponse newResponse;
                 newResponse.set_option(4);
@@ -348,13 +351,13 @@ void *handler(void *arg)
                     {
                         if (allClients[i].status != 0)
                         {
-                            send(allClients[i].socket, sentMsg.c_str(), sentMsg.size(), 0);
+                            send(allClients[i].socketInt, sentMsg.c_str(), sentMsg.size(), 0);
                             flagLive = false;
                         }
                         else
                         {
                             printf("Request faile, the destinatary is offline\n");
-                            printf("Para:%s\n", newRequest.mutable_message()->recipient(););
+                            printf("Para:%s\n", newRequest.mutable_message()->recipient());
 
                             chat::ServerResponse newResponse;
                             newResponse.set_option(4);
@@ -400,7 +403,7 @@ void *handler(void *arg)
     pthread_exit(NULL);
 }
 
-int main(int argc, char *argv[]))
+int main(int argc, char *argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -414,7 +417,7 @@ int main(int argc, char *argv[]))
     server_connect.sin_addr.s_addr = INADDR_ANY;
     server_connect.sin_port = htons(usagePort);
 
-    int bind = bind(socketInt, (struct sockaddr *)&server_connect, sizeof(server_connect));
+    int binds = bind(socketInt, (struct sockaddr *)&server_connect, sizeof(server_connect));
 
     printf("Check socket\n");
     if (socketInt < 0)
@@ -429,7 +432,7 @@ int main(int argc, char *argv[]))
         return 1;
     }
     printf("Check bind\n");
-    if (bind < 0)
+    if (binds < 0)
     {
         printf("Error\n");
         return 1;
@@ -463,3 +466,4 @@ int main(int argc, char *argv[]))
     shutdown(socketInt, SHUT_RDWR);
     return 0;
 }
+
