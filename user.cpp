@@ -261,7 +261,7 @@ int main(int argc, char **argv)
                 int temp;
                 scanf("%d", &temp);
 
-                if (temp == 1)
+                if (temp == 1)// privado
                 {
                     string destino, mensaje;
 
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 2)
+                else if (temp == 2)// publico
                 {
                     string mensaje;
 
@@ -304,29 +304,84 @@ int main(int argc, char **argv)
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 3)
+                else if (temp == 3)// activo
                 {
+                    statusCode = 1;
+
+                    chat::UserRequest statusChange;
+                    statusChange.set_option(3);
+                    statusChange.mutable_status()->set_newstatus(statusCode);
+                    statusChange.mutable_status()->set_username(username);
+
+                    string serialized;
+                    statusChange.SerializeToString(&serialized);
+
+                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+
                 }
-                else if (temp == 4)
+                else if (temp == 4)// desconectado
                 {
+                    statusCode = 2;
+
+                    chat::UserRequest statusChange;
+                    statusChange.set_option(3);
+                    statusChange.mutable_status()->set_newstatus(statusCode);
+                    statusChange.mutable_status()->set_username(username);
+
+                    string serialized;
+                    statusChange.SerializeToString(&serialized);
+
+                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 5)
+                else if (temp == 5)// ausente
                 {
+                    statusCode = 3;
+
+                    chat::UserRequest statusChange;
+                    statusChange.set_option(3);
+                    statusChange.mutable_status()->set_newstatus(statusCode);
+                    statusChange.mutable_status()->set_username(username);
+
+                    string serialized;
+                    statusChange.SerializeToString(&serialized);
+
+                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 6)
+                else if (temp == 6)// lista de usuarios
                 {
                     chat::UserRequest user_request;
-                    user_request.set_option(2);
-                    user_request.mutable_inforequest()->set_type_request(true);
+                    user_request.set_option(1);
                     string serialized;
                     user_request.SerializeToString(&serialized);
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 4)
+                else if (temp == 7)// info de usuario
                 {
-                    printf("Bye bye...\n");
+                    string user;
+
+                    printf("who?:");
+                    scanf("%s", buffer);
+                    user = (string)buffer;
+
+                    chat::UserRequest user_request;
+                    user_request.set_option(2);
+                    user_request.mutable_userinfo()->set_username(user);
+
+                    string serialized;
+                    user_request.SerializeToString(&serialized);
+
+                    send(server, serialized.c_str(), serialized.length(), 0);
+                }
+                else if (temp == 9)// salir
+                {
                     *flag = false;
+                    chat::UserRequest user_request;
+                    user_request.set_option(5);
+                    string serialized;
+                    user_request.SerializeToString(&serialized);
+
+                    send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else
                 {
