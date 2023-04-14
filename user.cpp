@@ -12,31 +12,51 @@
 
 using std::string;
 
-int main()
+int main(int argc, char **argv)
 {
+    string serverIP = (string)argv[1];
+    int serverPort = atoi(argv[2]);
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     struct sockaddr_in server_info;
     int server;
 
     server = socket(AF_INET, SOCK_STREAM, 0);
+    if (server < 0)
+    {
+        printf("Error creating socket\n");
+        return 1;
+    }
 
     server_info.sin_family = AF_INET;
     server_info.sin_port = htons(8080);
 
+    if (inet_pton(AF_INET, serverIP.c_str(), &serverAddress.sin_addr) <= 0)
+    {
+        printf("Error converting address\n");
+        return 1;
+    }
+
     int connectResult = connect(server, (struct sockaddr *)&server_info, sizeof(server_info));
+    if (connectResult < 0)
+    {
+        printf("Error connecting to server\n");
+        return 1;
+    }
 
     char buffer[2048] = {0};
+    char em[2048];
 
     while (true)
     {
         buffer[2048] = {0};
 
-        printf("Ingrese Email: \n");
+        printf("Email: ");
         scanf("%s", buffer);
 
         if (strlen(buffer) != 0)
         {
+            em = buffer;
             break;
         }
     }
@@ -51,6 +71,7 @@ int main()
     };
     if (socketInt < 0)
     {
+        close(socketInt);
         printf("Error con IP\n");
         return 1;
     }
@@ -63,6 +84,7 @@ int main()
     int err = connect(socketInt, (const struct sockaddr *)&serv, sizeof(serv));
     if (err < 0)
     {
+        close(socketInt);
         printf("Error con IP\n");
         return 1;
     }
@@ -81,20 +103,27 @@ int main()
     }
     else
     {
+        close(socketInt);
         printf("Error con IP\n");
         return 1;
     }
 
-    string username = (string)buffer;
+    int connectResult = connect(err, (struct sockaddr *)&err, sizeof(err));
+    if (connectResult < 0)
+    {
+        printf("Error connecting to server\n");
+        return 1;
+    }
 
-    printf("IP: %s", ip.c_str());
-    printf("Email: %s", buffer);
-    printf("\n");
+    string username = (string)em;
+
+    printf("IP: %s\n", ip.c_str());
+    printf("Email: %s\n", em);
 
     chat::UserRequest register_set;
 
     register_set.set_option(1);
-    register_set.mutable_newuser()->set_username(buffer);
+    register_set.mutable_newuser()->set_username(em);
     register_set.mutable_newuser()->set_ip(ip);
 
     string serialized;
@@ -111,14 +140,14 @@ int main()
 
     chat::ServerResponse server_responce;
     server_responce.ParseFromString((string)buffer);
-    
+
     if (server_responce.code() == 200)
     {
-        printf("200: Todo bien\n");
+        printf("200 OK: Todo bien\n");
     }
     else
     {
-        printf("400: %s\n", server_responce.servermessage().c_str());
+        printf("400 BAD: %s\n", server_responce.servermessage().c_str());
         return 1;
     }
 
@@ -135,7 +164,7 @@ int main()
         {
             sleep(1);
             out++;
-            printf("heartbeat");
+
             if (out == 20)
             {
                 chat::UserRequest heart_beat;
