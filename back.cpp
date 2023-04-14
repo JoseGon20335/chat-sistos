@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <cstring>
-#include <sys/socketInt.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include "project.pb.h"
 
