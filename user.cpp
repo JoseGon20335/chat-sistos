@@ -195,7 +195,12 @@ int main(int argc, char **argv)
         {
             while (*flag)
             {
-                int readResult = read(server, buffer, 2048);
+                int readResult = NULL;
+
+                while (readResult == NULL && *flag)
+                {
+                    readResult = read(server, buffer, 2048);
+                }
 
                 if (readResult < 0)
                 {
@@ -247,10 +252,14 @@ int main(int argc, char **argv)
         {
             while (*flag)
             {
-                printf("1. Send private mensaje\n");
-                printf("2. Send public mensaje\n");
-                printf("3. Get list of users\n");
-                printf("4. Exit\n");
+                printf("1. Private message\n");
+                printf("2. Public message\n");
+                printf("3. Status active\n");
+                printf("4. Status offline\n");
+                printf("5. Status absent\n");
+                printf("6. User list\n");
+                printf("7. Specific user info\n");
+                printf("9. Log out\n");
 
                 int temp;
                 scanf("%d", &temp);
@@ -299,6 +308,15 @@ int main(int argc, char **argv)
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else if (temp == 3)
+                {
+                }
+                else if (temp == 4)
+                {
+                }
+                else if (temp == 5)
+                {
+                }
+                else if (temp == 6)
                 {
                     chat::UserRequest user_request;
                     user_request.set_option(2);
