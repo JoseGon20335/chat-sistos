@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     server_info.sin_family = AF_INET;
     server_info.sin_port = htons(8080);
 
-    if (inet_pton(AF_INET, serverIP.c_str(), &serverAddress.sin_addr) <= 0)
+    if (inet_pton(AF_INET, serverIP.c_str(), &server_info.sin_addr) <= 0)
     {
         printf("Error converting address\n");
         return 1;
@@ -45,9 +45,10 @@ int main(int argc, char **argv)
     }
 
     char buffer[2048] = {0};
-    char em[2048];
 
-    while (true)
+    bool flagFillEnmail = true;
+
+    while (flagFillEnmail)
     {
         buffer[2048] = {0};
 
@@ -56,8 +57,7 @@ int main(int argc, char **argv)
 
         if (strlen(buffer) != 0)
         {
-            em = buffer;
-            break;
+            flagFillEnmail = false;
         }
     }
 
@@ -93,13 +93,13 @@ int main(int argc, char **argv)
     socklen_t namelen = sizeof(name);
     err = getsockname(socketInt, (struct sockaddr *)&name, &namelen);
 
-    char buffer[80];
-    const char *p = inet_ntop(AF_INET, &name.sin_addr, ip, 80);
+    char ipCharB[80];
+    const char *p = inet_ntop(AF_INET, &name.sin_addr, ipCharB, 80);
 
     if (p != NULL)
     {
         close(socketInt);
-        string res = (string)buffer;
+        ip = (string)ipCharB;
     }
     else
     {
@@ -115,15 +115,15 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    string username = (string)em;
+    string username = (string)buffer;
 
     printf("IP: %s\n", ip.c_str());
-    printf("Email: %s\n", em);
+    printf("Email: %s\n", buffer);
 
     chat::UserRequest register_set;
 
     register_set.set_option(1);
-    register_set.mutable_newuser()->set_username(em);
+    register_set.mutable_newuser()->set_username(buffer);
     register_set.mutable_newuser()->set_ip(ip);
 
     string serialized;
