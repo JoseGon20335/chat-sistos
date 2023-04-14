@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
+#include <fcntl.h>
 #include "project.pb.h"
 
 using std::string;
@@ -74,9 +75,8 @@ int main(int argc, char **argv)
     string ip;
     const char *dnsServer = "8.8.8.8";
     int dnsPort = 53;
-
+    struct sockaddr_in serverIp;
     int socketInt = socket(AF_INET, SOCK_DGRAM, 0);
-    struct sockaddr_in serv;
     if (socketInt < 0)
     {
         close(socketInt);
@@ -84,12 +84,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    memset(&serv, 0, sizeof(serv));
-    serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = inet_addr(dnsServer);
-    serv.sin_port = htons(dnsPort);
+    memset(&serverIp, 0, sizeof(serverIp));
+    serverIp.sin_family = AF_INET;
+    serverIp.sin_addr.s_addr = inet_addr(dnsServer);
+    serverIp.sin_port = htons(dnsPort);
 
-    int err = connect(socketInt, (const struct sockaddr *)&serv, sizeof(serv));
+    int err = connect(socketInt, (const struct sockaddr *)&serverIp, sizeof(serverIp));
     if (err < 0)
     {
         close(socketInt);
@@ -159,6 +159,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    int flags = fcntl(server, F_GETFL, 0);
+    fcntl(server, F_SETFL, flags | O_NONBLOCK);
+
     bool *flag = (bool *)mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *flag = true;
 
@@ -172,7 +175,7 @@ int main(int argc, char **argv)
         {
             sleep(1);
             out++;
-            if (out == 20)
+            if (out == 60)
             {
                 chat::UserRequest heart_beat;
                 heart_beat.set_option(5);
