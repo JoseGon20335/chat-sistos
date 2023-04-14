@@ -27,6 +27,8 @@ void *handler(void *arg)
     int slot = -1;
     int socketInt = *(int *)arg;
 
+    printf("Thread %lu: Client connected\n", thisThread);
+
     char buffer[2048] = {0};
     int readPid;
 
@@ -190,13 +192,15 @@ void *handler(void *arg)
                     printf("User:%s\n", newRequest.mutable_newuser()->username().c_str());
                     printf("IP:%s\n", newRequest.mutable_newuser()->ip().c_str());
 
+                    // std::string userSearch = newRequest.inforequest().user();
+
                     chat::ServerResponse newResponse;
                     newResponse.set_option(2);
                     newResponse.set_code(200);
                     bool flagGetUsers = false;
                     for (int i = 0; i < 10; i++)
                     {
-                        if (allClients[i].username == userSearch.c_str())
+                        if (allClients[i].username == newRequest.inforequest().user().c_str())
                         {
                             flagGetUsers = true;
                             newResponse.mutable_userinforesponse()->set_username(allClients[i].username);
@@ -405,6 +409,12 @@ void *handler(void *arg)
 
 int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        printf("PORT: %s\n", argv[0]);
+        return 1;
+    }
+
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     struct sockaddr_in server_connect;
@@ -466,4 +476,3 @@ int main(int argc, char *argv[])
     shutdown(socketInt, SHUT_RDWR);
     return 0;
 }
-
