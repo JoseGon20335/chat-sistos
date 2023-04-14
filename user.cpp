@@ -318,8 +318,8 @@ int main(int argc, char **argv)
                     printf("No entre las opciones\n");
                 }
             }
+            wait(NULL);
         }
-
         wait(NULL);
     }
 
