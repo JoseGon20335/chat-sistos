@@ -316,7 +316,7 @@ int main(int argc, char **argv)
                     string serialized;
                     statusChange.SerializeToString(&serialized);
 
-                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                    send(server, serialized.c_str(), serialized.length(), 0);
 
                 }
                 else if (temp == 4)// desconectado
