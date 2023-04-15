@@ -15,7 +15,7 @@ struct cliente
 {
     string username;
     string ip;
-    int socketInt;
+    int socket;
     int status;
 };
 
@@ -27,50 +27,51 @@ void *handler(void *arg)
     int slot = -1;
     int socketInt = *(int *)arg;
 
+    printf("socketINT %d", socketInt);
+
     printf("Un cliete conectado\n");
 
     char buffer[2048] = {0};
     int readPid;
 
+    bool flagLive = true;
+
     bool *reading = (bool *)mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    bool *stillActive = (bool *)mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    bool *dieT = (bool *)mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
     int flags = fcntl(socketInt, F_GETFL, 0);
     fcntl(socketInt, F_SETFL, flags | O_NONBLOCK);
 
-    bool flagLive = true;
-
     while (flagLive)
     {
         memset(buffer, 0, 2048);
-        *stillActive = false;
+        *dieT = false;
         *reading = true;
         int pid = fork();
+        int timeInactive = 0;
 
         if (pid == 0)
         {
-            int timeInactive = 0;
-
+            timeInactive = 0;
             while (*reading)
             {
                 sleep(1);
                 timeInactive += 1;
 
-                if (timeInactive >= 120)
+                if (timeInactive >= 180)
                 {
                     close(socketInt);
-                    *stillActive = true;
+                    *dieT = true;
                     break;
                 }
             }
-
             return 0;
         }
         else if (pid > 0)
         {
             readPid = -1;
 
-            while (readPid == -1 && *stillActive)
+            while (readPid == -1 && !*dieT)
             {
                 readPid = read(socketInt, buffer, 2048);
             }
@@ -79,7 +80,7 @@ void *handler(void *arg)
             wait(NULL);
         }
 
-        if (*stillActive)
+        if (*dieT)
         {
             if (slot != -1)
             {
@@ -91,21 +92,21 @@ void *handler(void *arg)
 
         if (readPid < 0)
         {
-            printf("Error: cant readPid client socket\n");
-            flagLive = false;
+            printf("Error: cant read pid client socket\n");
+            break;
         }
         else if (readPid == 0)
         {
-            printf("Thread %lu: Client disconnected\n", thisThread);
+            printf("Client disconnected\n");
 
             if (slot != -1)
             {
                 allClients[slot].username = "";
                 allClients[slot].ip = "";
-                allClients[slot].socketInt = 0;
+                allClients[slot].socket = 0;
                 allClients[slot].status = 0;
             }
-            flagLive = false;
+            break;
         }
         else
         {
@@ -128,6 +129,7 @@ void *handler(void *arg)
 
                 for (int i = 0; i < 10; i++)
                 {
+                    // para probar sin la ip
                     if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->ip().c_str())
                     {
                         printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str());
@@ -144,29 +146,32 @@ void *handler(void *arg)
 
                 if (canRegister)
                 {
+                    bool flagExist = false;
                     for (int i = 0; i < 10; i++)
                     {
                         if (allClients[i].ip.c_str() == "")
                         {
+                            printf("New client in server client slot number: %d\n", i);
                             slot = i;
+                            flagExist = true;
                         }
                     }
 
-                    if (slot == -1)
+                    if (flagExist)
                     {
                         printf("Unable to set new client due to dont have enoght slot, sorry :(\n", thisThread);
                         flagLive = false;
                     }
                     else
                     {
+                        allClients[slot].username = newRequest.mutable_newuser()->username();
+                        allClients[slot].ip = newRequest.mutable_newuser()->ip();
+                        allClients[slot].socket = socketInt;
+                        allClients[slot].status = 1;
                         printf("New client in server client slot number: %d\n", slot);
                         printf("Register a new user sucesfully:\n");
                         printf("Username: %s\n", allClients[slot].username.c_str());
                         printf("IP: %s\n", allClients[slot].ip.c_str());
-                        allClients[slot].username = newRequest.mutable_newuser()->username();
-                        allClients[slot].ip = newRequest.mutable_newuser()->ip();
-                        allClients[slot].socketInt = socketInt;
-                        allClients[slot].status = 1;
                     }
                     newResponse.set_code(200);
                     newResponse.set_servermessage("User registered sucesfully");
@@ -311,7 +316,7 @@ void *handler(void *arg)
                 {
                     if (allClients[i].username != newRequest.mutable_message()->sender() && allClients[i].status != 0)
                     {
-                        send(allClients[i].socketInt, sentMsg.c_str(), sentMsg.size(), 0);
+                        send(allClients[i].socket, sentMsg.c_str(), sentMsg.size(), 0);
                         newRequest.mutable_message()->sender();
                     }
                 }
@@ -351,7 +356,7 @@ void *handler(void *arg)
                     {
                         if (allClients[i].status != 0)
                         {
-                            send(allClients[i].socketInt, sentMsg.c_str(), sentMsg.size(), 0);
+                            send(allClients[i].socket, sentMsg.c_str(), sentMsg.size(), 0);
                             flagLive = false;
                         }
                         else
@@ -398,7 +403,7 @@ void *handler(void *arg)
     }
 
     munmap(&reading, sizeof(bool));
-    munmap(&stillActive, sizeof(bool));
+    munmap(&dieT, sizeof(bool));
 
     pthread_exit(NULL);
 }
@@ -407,26 +412,27 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        printf("PORT: %s\n", argv[0]);
+        printf("Usage: %s <port>\n", argv[0]);
         return 1;
     }
-
+    int usagePort = atoi(argv[1]);
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    struct sockaddr_in server_connect;
-    int usagePort = atoi(argv[1]);
+    struct sockaddr_in serverAddress;
+    int socket_server;
+    int port;
 
-    int socketInt = socket(AF_INET, SOCK_STREAM, 0);
-    int port = setsockopt(socketInt, SOL_SOCKET, SO_REUSEADDR, &port, sizeof(port));
+    socket_server = socket(AF_INET, SOCK_STREAM, 0);
+    port = setsockopt(socket_server, SOL_SOCKET, SO_REUSEADDR, &port, sizeof(port));
 
-    server_connect.sin_family = AF_INET;
-    server_connect.sin_addr.s_addr = INADDR_ANY;
-    server_connect.sin_port = htons(usagePort);
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_port = htons(usagePort);
 
-    int binds = bind(socketInt, (struct sockaddr *)&server_connect, sizeof(server_connect));
+    int binds = bind(socket_server, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
     printf("Check socket\n");
-    if (socketInt < 0)
+    if (socket_server < 0)
     {
         printf("Error\n");
         return 1;
@@ -444,7 +450,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     printf("Listen socket\n");
-    if (listen(socketInt, 5) < 0)
+    if (listen(socket_server, 5) < 0)
     {
         printf("Error\n");
         return 1;
@@ -456,19 +462,19 @@ int main(int argc, char *argv[])
         printf("Servidor conectado!\n");
         printf("-------------------\n");
 
-        int serverSize = sizeof(server_connect);
-        int socketAccept = accept(socketInt, (struct sockaddr *)&server_connect, (socklen_t *)&serverSize);
+        int serverSize = sizeof(serverAddress);
+        int socketAccept = accept(socket_server, (struct sockaddr *)&serverAddress, (socklen_t *)&serverSize);
 
         if (socketAccept < 0)
         {
-            printf("Error socketInt");
+            printf("Error socket");
             return 1;
         }
         pthread_t thread;
-        pthread_create(&thread, NULL, &handler, (void *)&socketInt);
+        pthread_create(&thread, NULL, &handler, (void *)&socketAccept);
     }
 
-    close(socketInt);
-    shutdown(socketInt, SHUT_RDWR);
+    close(socket_server);
+    shutdown(socket_server, SHUT_RDWR);
     return 0;
 }
