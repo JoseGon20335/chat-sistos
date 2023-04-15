@@ -306,7 +306,7 @@ int main(int argc, char **argv)
                 }
                 else if (temp == 3)// activo
                 {
-                    statusCode = 1;
+                    int statusCode = 1;
 
                     chat::UserRequest statusChange;
                     statusChange.set_option(3);
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
                 }
                 else if (temp == 4)// desconectado
                 {
-                    statusCode = 2;
+                    int statusCode = 2;
 
                     chat::UserRequest statusChange;
                     statusChange.set_option(3);
@@ -331,11 +331,11 @@ int main(int argc, char **argv)
                     string serialized;
                     statusChange.SerializeToString(&serialized);
 
-                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                    send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else if (temp == 5)// ausente
                 {
-                    statusCode = 3;
+                    int statusCode = 3;
 
                     chat::UserRequest statusChange;
                     statusChange.set_option(3);
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
                     string serialized;
                     statusChange.SerializeToString(&serialized);
 
-                    send(serverSocket, serialized.c_str(), serialized.length(), 0);
+                    send(server, serialized.c_str(), serialized.length(), 0);
                 }
                 else if (temp == 6)// lista de usuarios
                 {
@@ -358,6 +358,7 @@ int main(int argc, char **argv)
                 }
                 else if (temp == 7)// info de usuario
                 {
+                    /*
                     string user;
 
                     printf("who?:");
@@ -372,6 +373,8 @@ int main(int argc, char **argv)
                     user_request.SerializeToString(&serialized);
 
                     send(server, serialized.c_str(), serialized.length(), 0);
+                    */
+                   
                 }
                 else if (temp == 9)// salir
                 {
