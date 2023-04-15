@@ -129,6 +129,7 @@ void *handler(void *arg)
 
                 for (int i = 0; i < 10; i++)
                 {
+                    // para probar sin la ip
                     if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->ip().c_str())
                     {
                         printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str());
