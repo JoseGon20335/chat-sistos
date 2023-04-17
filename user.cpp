@@ -215,10 +215,12 @@ int main(int argc, char **argv)
                         printf("Success\n");
                         for (int i = 0; i < server_responce.mutable_connectedusers()->connectedusers_size(); i++)
                         {
-                            printf("User: %s, IP: %s, Status:%s\n", server_responce.mutable_connectedusers()->connectedusers(i).username().c_str(), 
-			    server_responce.mutable_connectedusers()->connectedusers(i).ip().c_str(), server_responce.mutable_connectedusers()->connectedusers(i).status().c_str());
+                            printf("User: %s, IP: %s, Status:%d\n", server_responce.mutable_connectedusers()->connectedusers(i).username().c_str(),
+                                   server_responce.mutable_connectedusers()->connectedusers(i).ip().c_str(), server_responce.mutable_connectedusers()->connectedusers(i).status());
                         }
-                    }else if (server_responce.option() == 3) {
+                    }
+                    else if (server_responce.option() == 3)
+                    {
                         printf("Success: %s\n", server_responce.servermessage().c_str());
                     }
                     else if (server_responce.option() == 4)
@@ -264,7 +266,7 @@ int main(int argc, char **argv)
                 int temp;
                 scanf("%d", &temp);
 
-                if (temp == 1)// privado
+                if (temp == 1) // privado
                 {
                     string destino, mensaje;
 
@@ -288,7 +290,7 @@ int main(int argc, char **argv)
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 2)// publico
+                else if (temp == 2) // publico
                 {
                     string mensaje;
 
@@ -307,7 +309,7 @@ int main(int argc, char **argv)
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 3)// activo
+                else if (temp == 3) // activo
                 {
                     int statusCode = 1;
 
@@ -320,9 +322,8 @@ int main(int argc, char **argv)
                     statusChange.SerializeToString(&serialized);
 
                     send(server, serialized.c_str(), serialized.length(), 0);
-
                 }
-                else if (temp == 4)// desconectado
+                else if (temp == 4) // desconectado
                 {
                     int statusCode = 2;
 
@@ -336,13 +337,13 @@ int main(int argc, char **argv)
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 5)// ausente
+                else if (temp == 5) // ausente
                 {
                     int statusCode = 3;
 
                     chat::UserRequest statusChange;
                     statusChange.set_option(3);
-		    
+
                     statusChange.mutable_status()->set_newstatus(statusCode);
                     statusChange.mutable_status()->set_username(username);
 
@@ -351,20 +352,20 @@ int main(int argc, char **argv)
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 6)// lista de usuarios
+                else if (temp == 6) // lista de usuarios
                 {
                     chat::UserRequest user_request;
                     user_request.set_option(2);
-		    user_request.mutable_inforequest()->set_type_request(true);
+                    user_request.mutable_inforequest()->set_type_request(true);
                     string serialized;
 
                     user_request.SerializeToString(&serialized);
 
                     send(server, serialized.c_str(), serialized.length(), 0);
                 }
-                else if (temp == 7)// info de usuario
+                else if (temp == 7) // info de usuario
                 {
-                    
+
                     string user;
 
                     printf("who?: ");
@@ -374,22 +375,19 @@ int main(int argc, char **argv)
                     chat::UserRequest user_request;
 
                     user_request.set_option(2);
-		    user_request.mutable_inforequest()->set_type_request(false);
-                    chat::UserInfoRequest* infoRequest = user_request.mutable_inforequest();
+                    user_request.mutable_inforequest()->set_type_request(false);
+                    chat::UserInfoRequest *infoRequest = user_request.mutable_inforequest();
                     infoRequest->set_type_request(false);
                     infoRequest->set_user(user);
-    
 
                     string serialized;
                     user_request.SerializeToString(&serialized);
 
-                    const void *dataPtr = static_cast<const void*>(serialized.data());
+                    const void *dataPtr = static_cast<const void *>(serialized.data());
 
                     send(server, dataPtr, serialized.length(), 0);
-                    
-                   
                 }
-                else if (temp == 9)// salir
+                else if (temp == 9) // salir
                 {
                     *flag = false;
                     chat::UserRequest user_request;
