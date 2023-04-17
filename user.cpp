@@ -206,7 +206,7 @@ int main(int argc, char **argv)
                 }
 
                 chat::ServerResponse server_responce;
-                server_responce.ParseFromString((string)buffer);
+                server_responce.ParseFromArray(buffer, 1024);
 
                 if (server_responce.code() == 200)
                 {
@@ -238,13 +238,13 @@ int main(int argc, char **argv)
                         }
                         else
                         {
-                            printf("Success");
+                            printf("Success\n");
                         }
                     }
                 }
                 else
                 {
-                    printf("Error 400");
+                    printf("Error 400\n");
                 }
             }
 
