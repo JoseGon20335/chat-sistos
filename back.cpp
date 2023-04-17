@@ -144,7 +144,7 @@ void *handler(void *arg)
                     for (int i = 0; i < 10; i++)
                     {
                         printf("Check Slot: %d\n", i);
-                        if (allClients[i].username.empty())
+                        if (strcmp(allClients[i].username.empty(), "") == 0)
                         {
                             printf("New client in server client slot number: %d\n", i);
                             slot = i;
