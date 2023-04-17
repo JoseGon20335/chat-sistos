@@ -193,9 +193,11 @@ void *handler(void *arg)
                         if (strcmp(allClients[i].username.c_str(), dataTemp.c_str()) == 0)
                         {
                             flagGetUsers = true;
-                            newResponse.mutable_userinforesponse()->set_username(allClients[i].username);
-                            newResponse.mutable_userinforesponse()->set_ip(allClients[i].ip);
-                            newResponse.mutable_userinforesponse()->set_status(allClients[i].status);
+                            chat::UserInfo *newUser = newResponse.mutable_connectedusers()->add_connectedusers();
+                            newUser->set_username(allClients[i].username);
+                            newUser->set_ip(allClients[i].ip);
+                            newUser->set_status(allClients[i].status);
+
                         }
                     }
 
