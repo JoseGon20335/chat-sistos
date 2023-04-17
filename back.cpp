@@ -305,17 +305,17 @@ void *handler(void *arg)
 
                 for (int i = 0; i < 10; i++)
                 {
-                    bool isSameUser = false;
+                    bool notSameUser = true;
                     bool isUserOnline = false;
                     if (allClients[i].username != sender)
                     {
-                        isSameUser = true;
+                        notSameUser = false;
                     }
                     if (allClients[i].status != 0)
                     {
                         isUserOnline = true;
                     }
-                    if (!isSameUser && isUserOnline)
+                    if (notSameUser && isUserOnline)
                     {
                         send(allClients[i].socket, sentMsg.c_str(), sentMsg.size(), 0);
                         newRequest.mutable_message()->sender();
