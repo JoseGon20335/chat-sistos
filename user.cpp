@@ -212,13 +212,14 @@ int main(int argc, char **argv)
                 {
                     if (server_responce.option() == 2)
                     {
-                        printf("Success");
+                        printf("Success\n");
                         for (int i = 0; i < server_responce.mutable_connectedusers()->connectedusers_size(); i++)
                         {
-                            printf("%s\n", server_responce.mutable_connectedusers()->connectedusers(i).username().c_str());
+                            printf("User: %s, IP: %s, Status:%s\n", server_responce.mutable_connectedusers()->connectedusers(i).username().c_str(), 
+			    server_responce.mutable_connectedusers()->connectedusers(i).ip().c_str(), server_responce.mutable_connectedusers()->connectedusers(i).status().c_str());
                         }
                     }else if (server_responce.option() == 3) {
-                        printf("Success: %s\n", server_response.servermessage().c_str());
+                        printf("Success: %s\n", server_responce.servermessage().c_str());
                     }
                     else if (server_responce.option() == 4)
                     {
@@ -230,7 +231,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                printf("PRIVADA %s: %s\n", server_responce.mutable_message()->sender().c_str(), server_responce.mutable_message()->message().c_str());
+                                printf("PRIVADA: %s: %s\n", server_responce.mutable_message()->sender().c_str(), server_responce.mutable_message()->message().c_str());
                             }
                         }
                         else
@@ -341,6 +342,7 @@ int main(int argc, char **argv)
 
                     chat::UserRequest statusChange;
                     statusChange.set_option(3);
+		    
                     statusChange.mutable_status()->set_newstatus(statusCode);
                     statusChange.mutable_status()->set_username(username);
 
@@ -352,8 +354,10 @@ int main(int argc, char **argv)
                 else if (temp == 6)// lista de usuarios
                 {
                     chat::UserRequest user_request;
-                    user_request.set_option(1);
+                    user_request.set_option(2);
+		    user_request.mutable_inforequest()->set_type_request(true);
                     string serialized;
+
                     user_request.SerializeToString(&serialized);
 
                     send(server, serialized.c_str(), serialized.length(), 0);
@@ -368,8 +372,9 @@ int main(int argc, char **argv)
                     user = (string)buffer;
 
                     chat::UserRequest user_request;
-                    user_request.set_option(2);
 
+                    user_request.set_option(2);
+		    user_request.mutable_inforequest()->set_type_request(false);
                     chat::UserInfoRequest* infoRequest = user_request.mutable_inforequest();
                     infoRequest->set_type_request(false);
                     infoRequest->set_user(user);
