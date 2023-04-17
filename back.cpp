@@ -27,18 +27,13 @@ void *handler(void *arg)
     int slot = -1;
     int socketInt = *(int *)arg;
 
-    printf("socketINT %d", socketInt);
-
     printf("Un cliete conectado\n");
 
     char buffer[2048] = {0};
     int readPid;
-
     bool flagLive = true;
-
     bool *reading = (bool *)mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     bool *dieT = (bool *)mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
     int flags = fcntl(socketInt, F_GETFL, 0);
     fcntl(socketInt, F_SETFL, flags | O_NONBLOCK);
 
@@ -115,7 +110,6 @@ void *handler(void *arg)
 
             if (newRequest.option() == 1)
             {
-                // User registration
                 printf("New Request from user: REGISTER\n");
                 printf("User:%s\n", newRequest.mutable_newuser()->username().c_str());
                 printf("IP:%s\n", newRequest.mutable_newuser()->ip().c_str());
@@ -130,13 +124,13 @@ void *handler(void *arg)
                 for (int i = 0; i < 10; i++)
                 {
                     // para probar sin la ip
-                    if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->ip().c_str())
-                    {
-                        printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str());
-                        newResponse.set_servermessage("IP already register");
-                        canRegister = false;
-                    }
-                    if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->username().c_str())
+                    // if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->ip().c_str())
+                    // {
+                    //     printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str());
+                    //     newResponse.set_servermessage("IP already register");
+                    //     canRegister = false;
+                    // }
+                    if (strcmp(allClients[i].ip.c_str, newRequest.mutable_newuser()->username()) == 0)
                     {
                         printf("We alredy have a user whit the username: %s\n", newRequest.mutable_newuser()->username().c_str());
                         newResponse.set_servermessage("IP already register");
@@ -149,7 +143,8 @@ void *handler(void *arg)
                     bool flagExist = false;
                     for (int i = 0; i < 10; i++)
                     {
-                        if (allClients[i].ip.c_str() == "")
+                        printf("Check Slot: %d\n", i);
+                        if (allClients[i].username.empty())
                         {
                             printf("New client in server client slot number: %d\n", i);
                             slot = i;
@@ -201,7 +196,7 @@ void *handler(void *arg)
                     bool flagGetUsers = false;
                     for (int i = 0; i < 10; i++)
                     {
-                        if (allClients[i].username == newRequest.inforequest().user().c_str())
+                        if (strcmp(allClients[i].username.c_str(), newRequest.inforequest().user()) == 0)
                         {
                             flagGetUsers = true;
                             newResponse.mutable_userinforesponse()->set_username(allClients[i].username);
@@ -236,7 +231,7 @@ void *handler(void *arg)
                     bool flagGetUsers = false;
                     for (int i = 0; i < 10; i++)
                     {
-                        if (allClients[i].username != "")
+                        if (allClients[i].username.empty() == false)
                         {
                             flagGetUsers = true;
                             chat::UserInfo *newUser = newResponse.mutable_connectedusers()->add_connectedusers();
@@ -272,7 +267,7 @@ void *handler(void *arg)
                 newResponse.set_servermessage("Status failed to change");
                 for (int i = 0; i < 10; i++)
                 {
-                    if (allClients[i].username == newRequest.mutable_status()->username())
+                    strcmp(allClients[i].username.c_str(), newRequest.inforequest().user()) == 0 if (strcmp(allClients[i].username.c_str() newRequest.mutable_status()->username()) == 0)
                     {
                         allClients[i].status = newRequest.mutable_status()->newstatus();
                         printf("Thread %lu: User %s changed status to %d\n", thisThread, newRequest.mutable_status()->username().c_str(), newRequest.mutable_status()->newstatus());
@@ -314,7 +309,17 @@ void *handler(void *arg)
 
                 for (int i = 0; i < 10; i++)
                 {
-                    if (allClients[i].username != newRequest.mutable_message()->sender() && allClients[i].status != 0)
+                    bool isSameUser = false;
+                    bool isUserOnline = false;
+                    if (strcmp(allClients[i].username.c_str(), newRequest.mutable_message()->sender()) == 0)
+                    {
+                        isSameUser = true;
+                    }
+                    if (allClients[i].status != 0)
+                    {
+                        isUserOnline = true;
+                    }
+                    if (!isSameUser && isUserOnline)
                     {
                         send(allClients[i].socket, sentMsg.c_str(), sentMsg.size(), 0);
                         newRequest.mutable_message()->sender();
