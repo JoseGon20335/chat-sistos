@@ -192,9 +192,9 @@ int main(int argc, char **argv)
         {
             while (*flag)
             {
-                int readResult = NULL;
+                int readResult = -1;
 
-                while (readResult == NULL && *flag)
+                while (readResult == -1 && *flag)
                 {
                     readResult = read(server, buffer, 2048);
                 }
@@ -217,6 +217,8 @@ int main(int argc, char **argv)
                         {
                             printf("%s\n", server_responce.mutable_connectedusers()->connectedusers(i).username().c_str());
                         }
+                    }else if (server_responce.option() == 3) {
+                        printf("Success: %s\n", server_response.servermessage().c_str());
                     }
                     else if (server_responce.option() == 4)
                     {
@@ -358,22 +360,28 @@ int main(int argc, char **argv)
                 }
                 else if (temp == 7)// info de usuario
                 {
-                    /*
+                    
                     string user;
 
-                    printf("who?:");
+                    printf("who?: ");
                     scanf("%s", buffer);
                     user = (string)buffer;
 
                     chat::UserRequest user_request;
                     user_request.set_option(2);
-                    user_request.mutable_userinfo()->set_username(user);
+
+                    chat::UserInfoRequest* infoRequest = user_request.mutable_inforequest();
+                    infoRequest->set_type_request(false);
+                    infoRequest->set_user(user);
+    
 
                     string serialized;
                     user_request.SerializeToString(&serialized);
 
-                    send(server, serialized.c_str(), serialized.length(), 0);
-                    */
+                    const void *dataPtr = static_cast<const void*>(serialized.data());
+
+                    send(server, dataPtr, serialized.length(), 0);
+                    
                    
                 }
                 else if (temp == 9)// salir
