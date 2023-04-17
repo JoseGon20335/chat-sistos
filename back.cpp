@@ -130,7 +130,7 @@ void *handler(void *arg)
                     //     newResponse.set_servermessage("IP already register");
                     //     canRegister = false;
                     // }
-                    if (strcmp(allClients[i].ip.c_str, newRequest.mutable_newuser()->username()) == 0)
+                    if (strcmp(allClients[i].username.c_str(), newRequest.mutable_newuser()->username().c_str()) == 0)
                     {
                         printf("We alredy have a user whit the username: %s\n", newRequest.mutable_newuser()->username().c_str());
                         newResponse.set_servermessage("IP already register");
@@ -188,7 +188,7 @@ void *handler(void *arg)
                     printf("User:%s\n", newRequest.mutable_newuser()->username().c_str());
                     printf("IP:%s\n", newRequest.mutable_newuser()->ip().c_str());
 
-                    // std::string userSearch = newRequest.inforequest().user();
+                    std::string dataTemp = newRequest.inforequest().user();
 
                     chat::ServerResponse newResponse;
                     newResponse.set_option(2);
@@ -196,7 +196,7 @@ void *handler(void *arg)
                     bool flagGetUsers = false;
                     for (int i = 0; i < 10; i++)
                     {
-                        if (strcmp(allClients[i].username.c_str(), newRequest.inforequest().user()) == 0)
+                        if (strcmp(allClients[i].username.c_str(), dataTemp.c_str()) == 0)
                         {
                             flagGetUsers = true;
                             newResponse.mutable_userinforesponse()->set_username(allClients[i].username);
@@ -265,9 +265,10 @@ void *handler(void *arg)
                 newResponse.set_option(3);
                 newResponse.set_code(400);
                 newResponse.set_servermessage("Status failed to change");
+                std::string dataTemp = newRequest.inforequest().user();
                 for (int i = 0; i < 10; i++)
                 {
-                    strcmp(allClients[i].username.c_str(), newRequest.inforequest().user()) == 0 if (strcmp(allClients[i].username.c_str() newRequest.mutable_status()->username()) == 0)
+                    if (strcmp(allClients[i].username.c_str(), dataTemp.c_str()) == 0)
                     {
                         allClients[i].status = newRequest.mutable_status()->newstatus();
                         printf("Thread %lu: User %s changed status to %d\n", thisThread, newRequest.mutable_status()->username().c_str(), newRequest.mutable_status()->newstatus());
@@ -306,12 +307,13 @@ void *handler(void *arg)
                 sentMessage.mutable_message()->CopyFrom(newRequest.message());
                 string sentMsg;
                 sentMessage.SerializeToString(&sentMsg);
+                string sender = newRequest.mutable_message()->sender();
 
                 for (int i = 0; i < 10; i++)
                 {
                     bool isSameUser = false;
                     bool isUserOnline = false;
-                    if (strcmp(allClients[i].username.c_str(), newRequest.mutable_message()->sender()) == 0)
+                    if (allClients[i].username != sender)
                     {
                         isSameUser = true;
                     }
