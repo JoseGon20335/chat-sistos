@@ -123,13 +123,6 @@ void *handler(void *arg)
 
                 for (int i = 0; i < 10; i++)
                 {
-                    // para probar sin la ip
-                    // if (allClients[i].ip.c_str() == newRequest.mutable_newuser()->ip().c_str())
-                    // {
-                    //     printf("We alredy have a user whit the IP: %s\n", newRequest.mutable_newuser()->ip().c_str());
-                    //     newResponse.set_servermessage("IP already register");
-                    //     canRegister = false;
-                    // }
                     if (strcmp(allClients[i].username.c_str(), newRequest.mutable_newuser()->username().c_str()) == 0)
                     {
                         printf("We alredy have a user whit the username: %s\n", newRequest.mutable_newuser()->username().c_str());
@@ -149,10 +142,11 @@ void *handler(void *arg)
                             printf("New client in server client slot number: %d\n", i);
                             slot = i;
                             flagExist = true;
+                            i = 10;
                         }
                     }
 
-                    if (flagExist)
+                    if (!flagExist)
                     {
                         printf("Unable to set new client due to dont have enoght slot, sorry :(\n", thisThread);
                         flagLive = false;
